@@ -31,7 +31,7 @@ with st.form("user_input"):
         admission_grade = st.number_input("Admission Grade", min_value=0.0, max_value=200.0, step=0.1)
         sem1_grade = st.number_input("1st Semester Grade", min_value=0.0, max_value=20.0, step=0.1)
         gender = st.selectbox("Gender", options=["Male", "Female"])
-    
+
     with col2:
         sem2_grade = st.number_input("2nd Semester Grade", min_value=0.0, max_value=20.0, step=0.1)
         age = st.slider("Age at Enrollment", 17, 60, 20)
@@ -47,19 +47,28 @@ if submitted:
         "Curricular units 1st sem (grade)": sem1_grade,
         "Curricular units 2nd sem (grade)": sem2_grade,
         "Age at enrollment": age,
-        "Gender_Male": 1 if gender == "Male" else 0,
-        "Scholarship holder_Yes": 1 if scholarship == "Yes" else 0
+        # Add other features from your model training if they are used
+        # in feature_names, and add their input widgets in the form.
+        # For now, use dummy values for features not in the form,
+        # assuming they are part of feature_names but not user input directly.
+        # You should add proper input for all features in feature_names
+        # or adjust feature_names in your training script.
+        "Unemployment rate": 0, # Dummy value, replace with actual input if needed
+        "Inflation rate": 0, # Dummy value, replace with actual input if needed
+        "GDP": 0, # Dummy value, replace with actual input if needed
+        "Curricular units 1st sem (credited)": 0, # Dummy value, replace with actual input if needed
     }
 
-    # -- Buat DataFrame dari input dan lengkapi fitur --
+    # -- Create DataFrame from input and align features --
     input_df = pd.DataFrame([input_data])
 
-    # Tambahkan kolom-kolom yang belum ada (isi default = 0)
+    # Add columns that are in feature_names but not in input_df (fill with 0 or median/mode used in training)
+    # For simplicity, fill with 0 here. It's better to handle this consistently with training preprocessing.
     for col in feature_names:
         if col not in input_df.columns:
             input_df[col] = 0
 
-    # Susun urutan kolom
+    # Ensure columns are in the same order as training
     input_df = input_df[feature_names]
 
     # Tampilkan input pengguna sebagai visualisasi
@@ -74,7 +83,7 @@ if submitted:
     }])
     st.dataframe(display_df)
 
-    # -- Scaling dan prediksi --
+    # -- Scaling and prediction --
     input_scaled = scaler.transform(input_df)
     result = model.predict(input_scaled)[0]
     confidence = model.predict_proba(input_scaled)[0][result]
@@ -109,16 +118,19 @@ if submitted:
     }
     st.session_state.history.append(history_row)
 
-    # -- Ranking Fitur Paling Berpengaruh (simulasi SHAP) --
-    coefs = model.coef_[0]
-    contributions = input_scaled[0] * coefs
-    feat_imp = pd.DataFrame({
-        "Fitur": feature_names,
-        "Kontribusi": contributions
-    }).sort_values("Kontribusi", key=abs, ascending=False)
+    # -- Ranking Fitur Paling Berpengaruh (using feature_importances_ for XGBoost) --
+    if hasattr(model, 'feature_importances_'):
+        importances = model.feature_importances_
+        feat_imp = pd.DataFrame({
+            "Fitur": feature_names,
+            "Kepentingan": importances
+        }).sort_values("Kepentingan", ascending=False)
 
-    st.subheader("📈 Ranking Fitur yang Mempengaruhi Prediksi")
-    st.dataframe(feat_imp.head(10))
+        st.subheader("📈 Ranking Fitur yang Mempengaruhi Prediksi (Kepentingan)")
+        st.dataframe(feat_imp.head(10))
+    else:
+        st.info("Feature importance is not available for this model type.")
+
 
 # -- Tampilkan riwayat prediksi sesi --
 st.subheader("📊 Riwayat Prediksi di Sesi Ini")
