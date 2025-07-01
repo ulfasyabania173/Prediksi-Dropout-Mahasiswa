@@ -30,3 +30,6 @@ Aplikasi Streamlit untuk memprediksi risiko dropout mahasiswa berbasis data akad
 - Semua file utama (`app.py`, `model.pkl`, `scaler.pkl`, `features.pkl`) harus berada dalam satu folder yang sama.
 - Model, scaler, dan fitur harus konsisten dengan data training.
 - Untuk interpretasi fitur, aplikasi menampilkan ranking fitur berdasarkan atribut `feature_importances_` (jika model mendukung, XGBoost) atau menampilkan info jika tidak tersedia.
+=======
+# Prediksi-Dropout-Mahasiswa
+>>>>>>> d851b0708a0f43d891c11db94c92fbe80a7400b1
